@@ -1,4 +1,6 @@
-const sceneLabels = { atrium: "展厅一", cabinet: "展厅二" };
+import { createGallery, scenes } from "./gallery.js";
+
+const sceneLabels = { atrium: "展厅一", cabinet: "展厅二", photo: "实拍大厅" };
 
 const exhibits = Object.freeze([
   {
@@ -38,30 +40,49 @@ new window.Vue({
   data() {
     return {
       exhibits,
-      scenes: [],
+      scenes,
       currentScene: "",
-      markers: [],
       dialogMode: "help",
       activeExhibit: null,
       canFullscreen: !!document.fullscreenEnabled,
       fullscreen: false,
+      loading: true,
       renderError: false,
     };
   },
-  async mounted() {
+  computed: {
+    mappedScenes() {
+      return this.scenes.filter(scene => typeof scene.mapX === "number");
+    },
+  },
+  mounted() {
     document.addEventListener("fullscreenchange", this.syncFullscreen);
     try {
-      const { createGallery } = await import("./gallery.js");
-      this.gallery = createGallery({ canvas: this.$refs.canvas, onChange: this.updateMarkers });
-      this.scenes = Object.freeze(this.gallery.scenes);
+      const firstScene = this.sceneFromUrl();
+      this.gallery = createGallery({
+        element: this.$refs.panorama,
+        firstScene,
+        markerLabel: this.markerLabel,
+        activateMarker: this.activateMarker,
+        onReady: () => {
+          if (!this.loading) return;
+          this.loading = false;
+          this.readSceneFromUrl();
+        },
+        onError: () => {
+          this.loading = false;
+          this.renderError = true;
+        },
+      });
+      this.currentScene = firstScene;
       window.addEventListener("hashchange", this.readSceneFromUrl);
-      this.readSceneFromUrl();
     } catch (error) {
       console.error("Gallery could not start.", error);
       this.renderError = true;
     }
   },
   beforeDestroy() {
+    this.gallery?.destroy();
     document.removeEventListener("fullscreenchange", this.syncFullscreen);
     window.removeEventListener("hashchange", this.readSceneFromUrl);
   },
@@ -69,32 +90,25 @@ new window.Vue({
     sceneLabel(id) {
       return sceneLabels[id] || id;
     },
-    readSceneFromUrl() {
+    sceneFromUrl() {
       const requestedScene = window.location.hash.replace(/^#\/?/, "").replace(/\/$/, "");
-      const scene = this.scenes.find(({ id }) => id === requestedScene) || this.scenes[0];
-      this.chooseScene(scene.id, false);
+      return this.scenes.some(({ id }) => id === requestedScene) ? requestedScene : this.scenes[0].id;
+    },
+    readSceneFromUrl() {
+      this.chooseScene(this.sceneFromUrl(), false);
     },
     chooseScene(id, writeHistory = true) {
-      if (!this.gallery || this.currentScene === id) return;
+      if (writeHistory && location.hash !== `#/${id}/`) location.hash = `/${id}/`;
+      if (!this.gallery || this.loading || this.currentScene === id) return;
+      this.loading = true;
+      this.renderError = false;
       this.currentScene = id;
       this.gallery.setScene(id);
-      this.updateMarkers();
-      if (writeHistory) window.location.hash = `/${id}/`;
     },
-    updateMarkers() {
-      if (!this.gallery || !this.currentScene) return;
-      const scene = this.scenes.find(({ id }) => id === this.currentScene);
-      this.markers = scene.hotspots.map((hotspot, index) => {
-        const { x, y, visible } = this.gallery.project(hotspot);
-        return {
-          key: `${scene.id}-${index}`,
-          exhibit: hotspot.exhibit,
-          target: hotspot.target,
-          label: hotspot.target ? `前往${this.sceneLabel(hotspot.target)}` : `查看${this.exhibits[hotspot.exhibit - 1].title}`,
-          position: { left: `${x}px`, top: `${y}px` },
-          visible,
-        };
-      });
+    markerLabel(marker) {
+      return marker.target
+        ? `前往${this.sceneLabel(marker.target)}`
+        : `查看${this.exhibits[marker.exhibit - 1].title}`;
     },
     activateMarker(marker) {
       if (marker.target) this.chooseScene(marker.target);

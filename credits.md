@@ -1,4 +1,8 @@
-# Artwork image credits
+# Image credits
+
+## St. Fagans Interior
+
+The `panoramas/photo_*.jpg` preview and cube tiles are derived from Morgan Evans's photographed panorama of the St Fagans museum interior. The panorama is published by Poly Haven under CC0. [Original panorama and photographer](https://polyhaven.com/a/st_fagans_interior) · [Poly Haven asset license](https://polyhaven.com/license)
 
 ## The “Titeux” Dancer
 

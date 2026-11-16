@@ -6,6 +6,7 @@
   <meta name="description" content="一座可拖拽探索的虚拟画廊，观察艺术如何捕捉身体的动作。">
   <meta name="theme-color" content="#181b18">
   <title>动作之间 · 360° 虚拟画廊</title>
+  <link rel="stylesheet" href="./vendor/pannellum.css">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -17,19 +18,18 @@
     </header>
     <div class="intro">
       <div><p class="kicker" lang="en">FIGURES IN MOTION</p><h1>动作之间</h1></div>
-      <p class="intro-text">在两座展厅里，观察艺术如何留住转瞬即逝的动作。</p>
+      <p class="intro-text">环顾两座虚拟展厅，探索一座实拍的博物馆大厅。</p>
     </div>
     <section class="tour" ref="tour" aria-label="360° 线上展厅">
-      <div class="viewport" id="viewport">
-        <canvas id="gallery" ref="canvas" tabindex="0" @keydown="moveWithKeyboard" aria-label="全景视窗。使用方向键转动，使用加减键缩放。"></canvas>
-        <div class="hotspots" aria-label="当前视野内的热点">
-          <button v-for="marker in markers" :key="marker.key" v-show="marker.visible" type="button"
-            class="hotspot" :class="{ travel: marker.target }" :style="marker.position"
-            :aria-label="marker.label" :title="marker.label" @click="activateMarker(marker)">{{ marker.target ? '↑' : 'i' }}</button>
+      <div class="viewport" id="viewport" :aria-busy="loading && !renderError ? 'true' : null">
+        <div id="gallery" ref="panorama" tabindex="0" @keydown.self="moveWithKeyboard" aria-label="全景视窗。使用方向键转动，使用加减键缩放。"></div>
+        <div v-if="loading && currentScene && !renderError" class="scene-preview">
+          <img :src="'./panoramas/' + currentScene + '_preview.jpg'" alt="">
+          <span role="status">正在载入全景…</span>
         </div>
         <div v-if="currentScene" class="scene-badge" aria-live="polite"><span class="live-dot"></span>{{ sceneLabel(currentScene) }}</div>
-        <div v-if="renderError" class="render-error" role="status">当前浏览器无法显示 3D 展厅。可通过下方的展品列表继续浏览。</div>
-        <div v-if="scenes.length" class="controls" aria-label="全景控制">
+        <div v-if="renderError" class="render-error" role="status">全景加载失败。可通过下方的展品列表继续浏览。</div>
+        <div v-if="currentScene && !loading && !renderError" class="controls" aria-label="全景控制">
           <button type="button" @click="zoom(-8)" aria-label="放大" title="放大">+</button>
           <button type="button" @click="zoom(8)" aria-label="缩小" title="缩小">−</button>
           <button type="button" @click="reset" aria-label="重置视角" title="重置视角">↺</button>
@@ -43,7 +43,7 @@
         <div v-if="scenes.length" class="map" aria-label="展厅示意图">
           <div class="map-walls" aria-hidden="true"></div>
           <div class="map-points">
-            <button v-for="scene in scenes" :key="scene.id" type="button" class="map-point"
+            <button v-for="scene in mappedScenes" :key="scene.id" type="button" class="map-point"
               :aria-label="'地图：' + sceneLabel(scene.id)" :aria-current="scene.id === currentScene ? 'location' : null"
               :style="{left: scene.mapX + '%', top: scene.mapY + '%'}" @click="chooseScene(scene.id)"></button>
           </div>
@@ -51,7 +51,11 @@
         <button type="button" class="text-button list-button" @click="openDialog('list')">展品列表 <span aria-hidden="true">↗</span></button>
       </div>
     </section>
-    <footer class="footer">独立学习项目，与卢浮宫无关。<a href="https://www.louvre.fr/visites-en-ligne" rel="noopener noreferrer">原展参考 ↗</a></footer>
+    <footer class="footer">
+      <span>独立学习项目，与卢浮宫无关。</span>
+      <a v-if="currentScene === 'photo'" href="https://polyhaven.com/a/st_fagans_interior" target="_blank" rel="noopener noreferrer">实拍来源 · Morgan Evans / Poly Haven ↗</a>
+      <a v-else href="https://www.louvre.fr/visites-en-ligne" rel="noopener noreferrer">原展参考 ↗</a>
+    </footer>
   </main>
   <dialog ref="dialog" aria-labelledby="detail-title" @click.self="closeDialog">
     <div class="dialog-shell">
@@ -83,6 +87,7 @@
   </div>
   <noscript>需要启用 JavaScript 才能打开线上画廊。</noscript>
   <script src="./vendor/vue.min.js"></script>
+  <script src="./vendor/pannellum.js"></script>
   <script type="module" src="./main.js"></script>
 </body>
 </html>
