@@ -1,6 +1,6 @@
 import { createGallery, scenes } from "./gallery.js";
 
-const sceneLabels = { atrium: "展厅一", cabinet: "展厅二", photo: "实拍大厅" };
+const sceneLabels = { atrium: "展厅一", cabinet: "展厅二", photo: "实拍大厅", next: "泉水屋" };
 
 const exhibits = Object.freeze([
   {
@@ -42,6 +42,8 @@ new window.Vue({
       exhibits,
       scenes,
       currentScene: "",
+      viewYaw: 0,
+      viewHfov: 82,
       dialogMode: "help",
       activeExhibit: null,
       canFullscreen: !!document.fullscreenEnabled,
@@ -51,8 +53,15 @@ new window.Vue({
     };
   },
   computed: {
-    mappedScenes() {
-      return this.scenes.filter(scene => typeof scene.mapX === "number");
+    mapView() {
+      const scene = this.scenes.find(({ id }) => id === this.currentScene);
+      if (!scene) return null;
+      const heading = this.viewYaw + (scene.mapHeading ?? 90);
+      return {
+        left: scene.mapX + "%",
+        "--cone-start": heading - this.viewHfov / 2 + "deg",
+        "--cone-width": this.viewHfov + "deg",
+      };
     },
   },
   mounted() {
@@ -64,6 +73,10 @@ new window.Vue({
         firstScene,
         markerLabel: this.markerLabel,
         activateMarker: this.activateMarker,
+        onView: (yaw, hfov) => {
+          this.viewYaw = yaw;
+          this.viewHfov = hfov;
+        },
         onReady: () => {
           if (!this.loading) return;
           this.loading = false;

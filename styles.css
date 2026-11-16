@@ -55,11 +55,14 @@ h1 { margin: 0; font: 550 clamp(2.1rem, 5vw, 4.2rem)/1.2 'STIX Two Text', 'Songt
 .scene-button[aria-current="location"] { background: var(--accent); color: var(--background); border-color: var(--accent); }
 .list-button { justify-self: end; white-space: nowrap; }
 .list-button span { margin-inline-start: 5px; }
-.map { position: relative; width: 125px; height: 60px; }
-.map-walls { position: absolute; inset: 4px 13px; border: 1px solid #899180; border-radius: 9px 2px 2px 2px; background: #363c34; }
-.map-walls::after { content: ''; position: absolute; inset: 0 49% 40% auto; border-left: 1px solid #899180; }
+.map { position: relative; width: 170px; height: 60px; }
+.map-walls { position: absolute; inset: 9px 6px; border: 1px solid #899180; border-radius: 4px; background: #363c34; }
+.map-walls::before, .map-walls::after { content: ''; position: absolute; left: 25%; width: 50%; height: 27%; border-inline: 1px solid #899180; }
+.map-walls::before { top: 0; }
+.map-walls::after { bottom: 0; }
+.map-cone { position: absolute; top: 50%; width: 54px; height: 54px; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; background: conic-gradient(from var(--cone-start), #dfe7a688 0deg var(--cone-width), transparent var(--cone-width)); }
 .map-points { position: absolute; inset: 0; }
-.map-point { position: absolute; width: 27px; height: 27px; transform: translate(-50%, -50%); display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; }
+.map-point { position: absolute; top: 50%; width: 32px; height: 32px; transform: translate(-50%, -50%); display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; }
 .map-point::after { content: ''; width: 9px; height: 9px; border: 1px solid var(--ink); border-radius: 50%; background: var(--panel); }
 .map-point:hover::after, .map-point[aria-current="location"]::after { background: var(--accent); }
 .footer { display: flex; justify-content: space-between; gap: .6rem; flex-wrap: wrap; color: var(--muted); font-size: .8rem; padding: .9rem 0 1.25rem; }
@@ -84,14 +87,14 @@ dialog::backdrop { background: #11130fd9; }
   .viewport { height: clamp(310px, 53svh, 565px); }
   .tour-bar { gap: 4px; padding-inline: 8px; }
   .scene-button { padding-inline: .42rem; font-size: .8rem; }
-  .map { width: 88px; }
-  .map-walls { inset-inline: 5px; }
   .list-button { font-size: .8rem; }
   .controls { right: 8px; bottom: 8px; }
   .detail-grid { grid-template-columns: 1fr; gap: .8rem; }
   .detail-grid img { max-height: 45vh; }
 }
-@media (max-width: 360px) {
-  .map { width: 55px; }
-  .scene-button { padding-inline: .33rem; }
+@media (max-width: 540px) {
+  .tour-bar { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "scenes list" "map map"; padding-block: 8px 2px; }
+  .tour-bar nav { grid-area: scenes; flex-wrap: wrap; }
+  .list-button { grid-area: list; }
+  .map { grid-area: map; justify-self: center; height: 56px; }
 }

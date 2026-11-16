@@ -18,7 +18,7 @@
     </header>
     <div class="intro">
       <div><p class="kicker" lang="en">FIGURES IN MOTION</p><h1>动作之间</h1></div>
-      <p class="intro-text">环顾两座虚拟展厅，探索一座实拍的博物馆大厅。</p>
+      <p class="intro-text">环顾两座虚拟展厅，探索实拍大厅和泉水屋。</p>
     </div>
     <section class="tour" ref="tour" aria-label="360° 线上展厅">
       <div class="viewport" id="viewport" :aria-busy="loading && !renderError ? 'true' : null">
@@ -40,12 +40,13 @@
         <nav aria-label="视点切换">
           <button v-for="scene in scenes" :key="scene.id" type="button" class="scene-button" :aria-current="scene.id === currentScene ? 'location' : null" @click="chooseScene(scene.id)">{{ sceneLabel(scene.id) }}</button>
         </nav>
-        <div v-if="scenes.length" class="map" aria-label="展厅示意图">
+        <div class="map" role="group" aria-label="场景示意图">
           <div class="map-walls" aria-hidden="true"></div>
+          <div v-if="mapView" class="map-cone" :style="mapView" aria-hidden="true"></div>
           <div class="map-points">
-            <button v-for="scene in mappedScenes" :key="scene.id" type="button" class="map-point"
+            <button v-for="scene in scenes" :key="scene.id" type="button" class="map-point"
               :aria-label="'地图：' + sceneLabel(scene.id)" :aria-current="scene.id === currentScene ? 'location' : null"
-              :style="{left: scene.mapX + '%', top: scene.mapY + '%'}" @click="chooseScene(scene.id)"></button>
+              :title="sceneLabel(scene.id)" :style="{ left: scene.mapX + '%' }" @click="chooseScene(scene.id)"></button>
           </div>
         </div>
         <button type="button" class="text-button list-button" @click="openDialog('list')">展品列表 <span aria-hidden="true">↗</span></button>
@@ -54,6 +55,7 @@
     <footer class="footer">
       <span>独立学习项目，与卢浮宫无关。</span>
       <a v-if="currentScene === 'photo'" href="https://polyhaven.com/a/st_fagans_interior" target="_blank" rel="noopener noreferrer">实拍来源 · Morgan Evans / Poly Haven ↗</a>
+      <a v-else-if="currentScene === 'next'" href="https://pannellum.org/documentation/examples/tour/" target="_blank" rel="noopener noreferrer">实拍来源 · Matthew Petroff / Pannellum ↗</a>
       <a v-else href="https://www.louvre.fr/visites-en-ligne" rel="noopener noreferrer">原展参考 ↗</a>
     </footer>
   </main>
@@ -79,7 +81,7 @@
       <div v-else>
         <h2 id="detail-title">操作说明</h2>
         <p>拖拽画面环顾展厅，滚动鼠标滚轮或双指捏合调整远近。</p>
-        <p>点击箭头或地图上的圆点切换视点。点击画面中的「i」查看展品。</p>
+        <p>点击箭头或地图圆点切换视点。地图扇形显示当前朝向和视野范围。点击「i」查看展品。</p>
         <p>键盘可用方向键转动视角，使用加号和减号缩放。</p>
       </div>
     </div>
